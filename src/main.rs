@@ -11,28 +11,28 @@ enum DetailsContentType {
 
 // This setup has not translated to rust very well. Can be done better.
 impl DetailsContentType {
-    fn get_props(&self) -> ContentTypeProps {
+    fn build_props(&self, decoration: &str) -> ContentTypeProps {
         match self {
             DetailsContentType::Text => ContentTypeProps {
-                content_type: DetailsContentType::Text,
-                decoration: String::from("```"),
+                decoration_header: format!("{}{}", "```", decoration),
+                decoration_footer: String::from("```"),
             },
             DetailsContentType::Code => ContentTypeProps {
-                content_type: DetailsContentType::Code,
-                decoration: String::from(""),
+                decoration_header: String::from("```"),
+                decoration_footer: String::from("```"),
             },
         }
     }
 }
 
 struct ContentTypeProps {
-    content_type: DetailsContentType,
-    decoration: String,
+    decoration_header: String,
+    decoration_footer: String,
 }
 
 struct DetailsReplaceProps {
     summary: String,
-    content_type: DetailsContentType,
+    content_type_props: ContentTypeProps,
     content_body: String,
 }
 
@@ -42,7 +42,7 @@ struct DetailsRegexMatch {
 }
 
 fn main() {
-    let re = Regex::new(r"\[(.+?)](?:(!\w+)(?:\.(\w+))?)?\{\{\n?([\s\S]+?)?").unwrap();
+    let re = Regex::new(r"(?:\[(.+?)\])(?:(!\w+)(?:\.(\w+))?)?(?:\{\{\n?([\s\S]+?)?}})").unwrap();
     let mut buf = vec![];
     let lines = io::stdin().lock().read_to_end(&mut buf);
     drop(lines);
@@ -75,17 +75,18 @@ fn main() {
 }
 
 fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
+    let content_type = c.get(2)
+        .map(|s| if s.as_str().eq("!code") { DetailsContentType::Code } else { DetailsContentType::Text })
+        .unwrap_or(DetailsContentType::Text);
+    let decoration = c.get(3).map(|m| m.as_str().to_owned()).unwrap_or_else(String::new);
     DetailsReplaceProps {
         summary: c[1].to_string(),
-        content_type: c.get(2)
-            .map(|s| if s.as_str().eq("!code") { DetailsContentType::Code } else { DetailsContentType::Text })
-            .unwrap_or(DetailsContentType::Text),
-        content_body: c.get(3).map(|m| m.as_str().to_owned()).unwrap_or_else(|| String::from("Unwrapped None")),
+        content_type_props: content_type.build_props(&decoration),
+        content_body: c.get(4).map(|m| m.as_str().to_owned()).unwrap_or_else(|| String::from("Unwrapped None")),
     }
 }
 
 fn build_details_text(m: DetailsReplaceProps) -> String {
-    let content_type_props = m.content_type.get_props();
     return format!(
         "<details>\n<summary><code>{summary}</code></summary>
 
@@ -95,7 +96,7 @@ fn build_details_text(m: DetailsReplaceProps) -> String {
 
 </details>",
         summary=m.summary,
-        content_header= content_type_props.decoration,
+        content_header= m.content_type_props.decoration_header,
         content_body=m.content_body,
-        content_footer= content_type_props.decoration);
+        content_footer= m.content_type_props.decoration_footer);
 }
