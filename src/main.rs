@@ -1,6 +1,7 @@
+extern crate core;
+
 use std::io;
 use std::io::{Read};
-use std::ops::{Range};
 
 use regex::{Captures, Regex};
 
@@ -9,7 +10,6 @@ enum DetailsContentType {
     Code,
 }
 
-// This setup has not translated to rust very well. Can be done better.
 impl DetailsContentType {
     fn build_props(&self, decoration: &str) -> ContentTypeProps {
         match self {
@@ -36,42 +36,30 @@ struct DetailsReplaceProps {
     content_body: String,
 }
 
-struct DetailsRegexMatch {
-    range: Range<usize>,
-    replace_text: String,
-}
-
 fn main() {
     let re = Regex::new(r"(?:\[(.+?)\])(?:(!\w+)(?:\.(\w+))?)?(?:\{\{\n?([\s\S]+?)?}})").unwrap();
     let mut buf = vec![];
-    let lines = io::stdin().lock().read_to_end(&mut buf);
-    drop(lines);
+    let _ = io::stdin().lock().read_to_end(&mut buf);
 
-    let err_prefix = String::from("Error parsing input to utf8 string: ");
     let input_string = &String::from_utf8(buf)
-        .unwrap_or_else(|err| err_prefix + &*err.to_string());
+        .unwrap_or_else(|err|
+            panic!("Error parsing input to utf8 string: {}", err));
 
-    let captures = re.captures_iter(input_string);
-
-    let mut matches_vec: Vec<DetailsRegexMatch> = Vec::new();
-
-    for c in captures {
-        matches_vec.push(DetailsRegexMatch {
-            range: c.get(0).unwrap().range(),
-            replace_text: build_details_text(match_to_replace_props(c))
-        });
-    }
-
-    let mut out_frags: Vec<String> = Vec::new();
+    let mut out_frags: Vec<String> = vec![];
     let mut prev_end_idx: usize = 0;
-    for m in matches_vec {
-        out_frags.push(input_string[prev_end_idx..m.range.start].to_owned());
-        out_frags.push(m.replace_text);
-        prev_end_idx = m.range.end;
+    for c in re.captures_iter(input_string) {
+        // Range of the full match in the input string
+        let range = c.get(0).unwrap().range();
+
+        // Append the non-matched fragment (the range between prev match and this one)
+        out_frags.push(input_string[prev_end_idx..range.start].to_owned());
+        // Append the matched fragment's newly-built replace text
+        out_frags.push(build_details_text(match_to_replace_props(c)));
+
+        prev_end_idx = range.end;
     }
 
     println!("{}", out_frags.concat());
-
 }
 
 fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
