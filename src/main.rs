@@ -41,13 +41,13 @@ fn main() {
     let mut buf = vec![];
     let _ = io::stdin().lock().read_to_end(&mut buf);
 
-    let input_string = &String::from_utf8(buf)
+    let input_string = String::from_utf8(buf)
         .unwrap_or_else(|err|
             panic!("Error parsing input to utf8 string: {}", err));
 
     let mut out_frags: Vec<String> = vec![];
     let mut prev_end_idx: usize = 0;
-    for c in re.captures_iter(input_string) {
+    for c in re.captures_iter(&input_string) {
         // Range of the full match in the input string
         let range = c.get(0).unwrap().range();
 
@@ -65,13 +65,27 @@ fn main() {
 
 fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
     let content_type = c.get(2)
-        .map(|s| if s.as_str().eq("!code") { DetailsContentType::Code } else { DetailsContentType::Text })
+        .map(|m| m.as_str())
+        .map(match_content_type)
         .unwrap_or(DetailsContentType::Text);
-    let decoration = c.get(3).map(|m| m.as_str().to_owned()).unwrap_or_else(String::new);
+
+    let decoration = c.get(3)
+        .map(|m| m.as_str().to_owned())
+        .unwrap_or_else(String::new);
+
     DetailsReplaceProps {
         summary: c[1].to_string(),
         content_type_props: content_type.build_props(&decoration),
-        content_body: c.get(4).map(|m| m.as_str().to_owned()).unwrap_or_else(|| String::from("Unwrapped None")),
+        content_body: c.get(4)
+            .map(|m| m.as_str().to_owned())
+            .unwrap_or_else(|| panic!("Unwrapped None for matched `content_body`")),
+    }
+}
+
+fn match_content_type(input_string: &str) -> DetailsContentType {
+    match input_string {
+        "!code" => DetailsContentType::Code,
+        _ => DetailsContentType::Text,
     }
 }
 
