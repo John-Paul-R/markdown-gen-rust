@@ -25,7 +25,7 @@ cat ./listOfCities.md | markdown-gen-rust
 
 Output:
 
-```
+````
 <details>
 <summary><code>List of Cities</code></summary>
 
@@ -37,10 +37,10 @@ Output:
     "Buenos Aires"
 ]
 
-\```
+```
 
 </details>
-```
+````
 
 ---
 
