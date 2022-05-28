@@ -84,7 +84,7 @@ fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
 
 fn match_content_type(input_string: &str) -> DetailsContentType {
     match input_string {
-        "!code" => DetailsContentType::Code,
+        "code" => DetailsContentType::Code,
         _ => DetailsContentType::Text,
     }
 }
