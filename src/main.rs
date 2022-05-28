@@ -98,8 +98,8 @@ fn build_details_text(m: DetailsReplaceProps) -> String {
 {content_footer}
 
 </details>",
-        summary=m.summary,
-        content_header= m.content_type_props.decoration_header,
-        content_body=m.content_body,
-        content_footer= m.content_type_props.decoration_footer);
+        summary = m.summary,
+        content_header = m.content_type_props.decoration_header,
+        content_body = m.content_body,
+        content_footer = m.content_type_props.decoration_footer);
 }
