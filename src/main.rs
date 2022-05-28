@@ -4,7 +4,7 @@ use std::io;
 use std::io::{Read};
 
 fn main() {
-    let re = details_spoiler::REGEX;
+    let re = &details_spoiler::REGEX;
     let mut buf = vec![];
     let _ = io::stdin().lock().read_to_end(&mut buf);
 
@@ -31,12 +31,13 @@ fn main() {
 }
 
 mod details_spoiler {
-    use lazy_regex::{Lazy, regex};
+    use lazy_static::lazy_static;
     use regex::{Captures, Regex};
 
     // Public
-
-    pub static REGEX: &Lazy<Regex> = regex!(r"\[(.+?)](?:!?(\w+)(?:\.(\w+))?)?\{\{\n?([\s\S]+?)?}}");
+    lazy_static!{
+        pub static ref REGEX: Regex = Regex::new(r"\[(.+?)](?:!?(\w+)(?:\.(\w+))?)?\{\{\n?([\s\S]+?)?\n?}}").unwrap();
+    }
 
     pub fn handle_match(c: Captures) -> String {
         build_details_text(match_to_replace_props(c))
