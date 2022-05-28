@@ -37,7 +37,7 @@ struct DetailsReplaceProps {
 }
 
 fn main() {
-    let re = Regex::new(r"(?:\[(.+?)\])(?:(!\w+)(?:\.(\w+))?)?(?:\{\{\n?([\s\S]+?)?}})").unwrap();
+    let re = Regex::new(r"\[(.+?)](?:!?(\w+)(?:\.(\w+))?)?\{\{\n?([\s\S]+?)?}}").unwrap();
     let mut buf = vec![];
     let _ = io::stdin().lock().read_to_end(&mut buf);
 
