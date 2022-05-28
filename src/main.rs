@@ -14,11 +14,11 @@ impl DetailsContentType {
     fn build_props(&self, decoration: &str) -> ContentTypeProps {
         match self {
             DetailsContentType::Text => ContentTypeProps {
-                decoration_header: format!("{}{}", "```", decoration),
-                decoration_footer: String::from("```"),
+                decoration_header: String::new(),
+                decoration_footer: String::new(),
             },
             DetailsContentType::Code => ContentTypeProps {
-                decoration_header: String::from("```"),
+                decoration_header: format!("{}{}", "```", decoration),
                 decoration_footer: String::from("```"),
             },
         }
@@ -58,8 +58,9 @@ fn main() {
 
         prev_end_idx = range.end;
     }
+    out_frags.push(input_string[prev_end_idx..].to_owned());
 
-    println!("{}", out_frags.concat());
+    print!("{}", out_frags.concat());
 }
 
 fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
