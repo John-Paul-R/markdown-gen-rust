@@ -45,22 +45,22 @@ fn main() {
         .unwrap_or_else(|err|
             panic!("Error parsing input to utf8 string: {}", err));
 
-    let mut out_frags: Vec<String> = vec![];
+    let mut out= String::new();
     let mut prev_end_idx: usize = 0;
     for c in re.captures_iter(&input_string) {
         // Range of the full match in the input string
         let range = c.get(0).unwrap().range();
 
         // Append the non-matched fragment (the range between prev match and this one)
-        out_frags.push(input_string[prev_end_idx..range.start].to_owned());
+        out.push_str(&input_string[prev_end_idx..range.start]);
         // Append the matched fragment's newly-built replace text
-        out_frags.push(build_details_text(match_to_replace_props(c)));
+        out.push_str(&*build_details_text(match_to_replace_props(c)));
 
         prev_end_idx = range.end;
     }
-    out_frags.push(input_string[prev_end_idx..].to_owned());
+    out.push_str(&input_string[prev_end_idx..]);
 
-    print!("{}", out_frags.concat());
+    print!("{}", out);
 }
 
 fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
