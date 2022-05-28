@@ -64,6 +64,7 @@ fn main() {
 }
 
 fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
+    // These two (idx 2 and 3) are optional as per the regex
     let content_type = c.get(2)
         .map(|m| m.as_str())
         .map(match_content_type)
@@ -74,11 +75,9 @@ fn match_to_replace_props(c: Captures) -> DetailsReplaceProps {
         .unwrap_or_else(String::new);
 
     DetailsReplaceProps {
-        summary: c[1].to_string(),
+        summary: c[1].to_owned(),
         content_type_props: content_type.build_props(&decoration),
-        content_body: c.get(4)
-            .map(|m| m.as_str().to_owned())
-            .unwrap_or_else(|| panic!("Unwrapped None for matched `content_body`")),
+        content_body: c[4].to_owned(),
     }
 }
 
