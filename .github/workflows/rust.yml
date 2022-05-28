@@ -25,5 +25,5 @@ jobs:
       uses: actions/upload-artifact@v3.1.0
       with:
         name: markdown-gen-rust_binaries
-        path: /target/build/markdown-gen-rust.*
+        path: /home/runner/work/markdown-gen-rust/markdown-gen-rust/target/release/markdown-gen-rust*
         if-no-files-found: warn
