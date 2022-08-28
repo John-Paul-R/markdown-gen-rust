@@ -18,46 +18,8 @@ fn main() {
     print!("{}", exec(&input_string));
 }
 
-fn exec(input_string: &str) -> String {
-    let mut out= vec![];
-    let mut prev_end_idx: usize = 0;
-    for capture in details_spoiler::REGEX.captures_iter(input_string) {
-        // Range of the full match in the input string
-        let range = capture.get(0).unwrap().range();
-
-        // Append the non-matched fragment (the range between prev match and this one)
-        out.push(input_string[prev_end_idx..range.start].to_owned());
-        // Append the matched fragment's newly-built replace text
-        out.push(details_spoiler::handle_match(capture).to_owned());
-
-        prev_end_idx = range.end;
-    }
-    out.push(input_string[prev_end_idx..].to_owned());
-
-    out.concat()
-}
-
-fn exec_join(input_string: &str) -> String {
-    let mut out= vec![];
-    let mut prev_end_idx: usize = 0;
-    for capture in details_spoiler::REGEX.captures_iter(input_string) {
-        // Range of the full match in the input string
-        let range = capture.get(0).unwrap().range();
-
-        // Append the non-matched fragment (the range between prev match and this one)
-        out.push(input_string[prev_end_idx..range.start].to_owned());
-        // Append the matched fragment's newly-built replace text
-        out.push(details_spoiler::handle_match(capture).to_owned());
-
-        prev_end_idx = range.end;
-    }
-    out.push(input_string[prev_end_idx..].to_owned());
-
-    out.join("")
-}
-
 // interestingly, calling push_str on String::new() is vaster than collecting to a vec and calling concat
-fn exec_push_str(input_string: &str) -> String {
+fn exec(input_string: &str) -> String {
     let mut out= String::new();
     let mut prev_end_idx: usize = 0;
     for capture in details_spoiler::REGEX.captures_iter(input_string) {
