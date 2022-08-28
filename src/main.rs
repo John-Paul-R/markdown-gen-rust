@@ -1,10 +1,13 @@
+#![feature(test)]
+
+mod bench;
+
 extern crate core;
 
 use std::io;
 use std::io::{Read};
 
 fn main() {
-    let re = &details_spoiler::REGEX;
     let mut buf = vec![];
     let _ = io::stdin().lock().read_to_end(&mut buf);
 
@@ -12,9 +15,13 @@ fn main() {
         .unwrap_or_else(|err|
             panic!("Error parsing input to utf8 string: {}", err));
 
+    print!("{}", exec(&input_string));
+}
+
+fn exec(input_string: &str) -> String {
     let mut out= vec![];
     let mut prev_end_idx: usize = 0;
-    for capture in re.captures_iter(&input_string) {
+    for capture in details_spoiler::REGEX.captures_iter(input_string) {
         // Range of the full match in the input string
         let range = capture.get(0).unwrap().range();
 
@@ -27,7 +34,46 @@ fn main() {
     }
     out.push(input_string[prev_end_idx..].to_owned());
 
-    print!("{}", out.concat());
+    out.concat()
+}
+
+fn exec_join(input_string: &str) -> String {
+    let mut out= vec![];
+    let mut prev_end_idx: usize = 0;
+    for capture in details_spoiler::REGEX.captures_iter(input_string) {
+        // Range of the full match in the input string
+        let range = capture.get(0).unwrap().range();
+
+        // Append the non-matched fragment (the range between prev match and this one)
+        out.push(input_string[prev_end_idx..range.start].to_owned());
+        // Append the matched fragment's newly-built replace text
+        out.push(details_spoiler::handle_match(capture).to_owned());
+
+        prev_end_idx = range.end;
+    }
+    out.push(input_string[prev_end_idx..].to_owned());
+
+    out.join("")
+}
+
+// interestingly, calling push_str on String::new() is vaster than collecting to a vec and calling concat
+fn exec_push_str(input_string: &str) -> String {
+    let mut out= String::new();
+    let mut prev_end_idx: usize = 0;
+    for capture in details_spoiler::REGEX.captures_iter(input_string) {
+        // Range of the full match in the input string
+        let range = capture.get(0).unwrap().range();
+
+        // Append the non-matched fragment (the range between prev match and this one)
+        out.push_str(&input_string[prev_end_idx..range.start]);
+        // Append the matched fragment's newly-built replace text
+        out.push_str(&details_spoiler::handle_match(capture));
+
+        prev_end_idx = range.end;
+    }
+    out.push_str(&input_string[prev_end_idx..]);
+
+    out
 }
 
 mod details_spoiler {
@@ -102,7 +148,7 @@ mod details_spoiler {
     }
 
     fn build_details_text(m: DetailsReplaceProps) -> String {
-        return format!(
+        format!(
             "<details>\n<summary><code>{summary}</code></summary>
 
 {content_header}
@@ -113,7 +159,7 @@ mod details_spoiler {
             summary = m.summary,
             content_header = m.content_type_props.decoration_header,
             content_body = m.content_body,
-            content_footer = m.content_type_props.decoration_footer);
+            content_footer = m.content_type_props.decoration_footer)
     }
 
 }
