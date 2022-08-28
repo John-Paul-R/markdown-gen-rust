@@ -12,22 +12,22 @@ fn main() {
         .unwrap_or_else(|err|
             panic!("Error parsing input to utf8 string: {}", err));
 
-    let mut out= String::new();
+    let mut out= vec![];
     let mut prev_end_idx: usize = 0;
-    for c in re.captures_iter(&input_string) {
+    for capture in re.captures_iter(&input_string) {
         // Range of the full match in the input string
-        let range = c.get(0).unwrap().range();
+        let range = capture.get(0).unwrap().range();
 
         // Append the non-matched fragment (the range between prev match and this one)
-        out.push_str(&input_string[prev_end_idx..range.start]);
+        out.push(input_string[prev_end_idx..range.start].to_owned());
         // Append the matched fragment's newly-built replace text
-        out.push_str(&*details_spoiler::handle_match(c));
+        out.push(details_spoiler::handle_match(capture).to_owned());
 
         prev_end_idx = range.end;
     }
-    out.push_str(&input_string[prev_end_idx..]);
+    out.push(input_string[prev_end_idx..].to_owned());
 
-    print!("{}", out);
+    print!("{}", out.concat());
 }
 
 mod details_spoiler {
